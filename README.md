@@ -1,6 +1,5 @@
 # STaR: Self-taught Reasoner
-
-This is a paper replication attempt of "STaR: Bootstrapping Reasoning With Reasoning" (https://arxiv.org/abs/2203.14465). 
+paper replication attempt of "STaR: Bootstrapping Reasoning With Reasoning" (https://arxiv.org/abs/2203.14465). educational purposes only. :p 
 
 **tl;dr**  
 STaR is a way to improve base language models correctness against reasoning questions by iteratively bootstrapping model-generated rationales that lead to correct answers (including rationales conditioned on the correct answer when the model initially fails), and using these rationales as training data

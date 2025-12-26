@@ -1,7 +1,7 @@
 import torch
+import os
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from huggingface_hub import login
-import os
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -39,7 +39,7 @@ outputs = model.generate(
     pad_token_id=tokenizer.eos_token_id,
     eos_token_id=tokenizer.eos_token_id
 )
+
 generated_tokens = outputs[0][inputs['input_ids'].shape[1]:]
 answer = tokenizer.decode(generated_tokens, skip_special_tokens=True)
 print(answer)
-

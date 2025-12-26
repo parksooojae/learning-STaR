@@ -7,7 +7,6 @@ accelerate
 safetensors
 wandb
 trl
-datasets
 python-dotenv
 vllm>=0.2.0
 fastapi>=0.100.0

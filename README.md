@@ -1,5 +1,14 @@
 # STaR: Self-taught Reasoner
+<<<<<<< HEAD
 paper replication attempt of "STaR: Bootstrapping Reasoning With Reasoning" (https://arxiv.org/abs/2203.14465). educational purposes only :p 
+=======
+
+## Installation
+
+```bash
+pip install -r requirements.txt
+```
+>>>>>>> 7ee78e4 (fixed config, dependencies)
 
 **tl;dr**  
 STaR is a way to improve base language models correctness against reasoning questions by iteratively bootstrapping model-generated rationales that lead to correct answers (including rationales conditioned on the correct answer when the model initially fails), and using these rationales as training data
@@ -30,9 +39,10 @@ Starting w/ a pretrained model $M_0$ we run multiple rounds of SFT w/ bootstrapp
 1. Run inference against question $x_i$ from $D_{train}$ to produce rationale $\hat{r}$ leading to answer $\hat{y}$ (for $\forall x_i \in D_{train}$), using model $M_{i-1}$ .
 
 2.  
-   i. For $(x_i, \hat{r}, \hat{y})$ where $\hat{y} \neq y$, we store all valid question–rationale–answer triplets outputted by the model in dataset $O$.  
+   i. For, $(x_i, \hat{r}, \hat{y})$ where $\hat{y} = y$
+   we store all valid question–rationale–answer triplets outputted by the model in dataset $O$.  
 
-   ii. For $(x_i, \hat{r}, \hat{y})$ where $\hat{y} = y$, we give the model $(x, y)$ with $y$ as a hint for the model to generate a rationalization. If the model correctly generates a rationale for the correct answer, we save this as $(x, \hat{r}, y)$ into $O$.
+   ii. For $(x_i, \hat{r}, \hat{y})$ where $\hat{y} \neq y$, we give the model $(x, y)$ with $y$ as a hint for the model to generate a rationalization. If the model correctly generates a rationale for the correct answer, we save this as $(x, \hat{r}, y)$ into $O$.
 
 3. Fine-tune model $M_i$ via SFT on $O$.
 
@@ -60,6 +70,14 @@ Then for each $x_i$ in $D_{train}$ which we run inference on, we build a single 
 $$(x_1^p, r_1^p, y_1^p, \ldots, x_P^p, r_P^p, y_P^p, x_i)$$
 
 <br><br><br><br><br>
+
+
+
+I use wandb for experiment tracking: initializing runs, logging training and validation metrics (losses, performance numbers), logging technical stats (grad-noise, step/tokens/sec, grad norms), and resuming runs during inference/eval.
+
+
+run device_train.py to run SFT against the model.
+
 
 
 

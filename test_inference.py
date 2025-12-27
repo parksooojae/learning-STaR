@@ -1,9 +1,17 @@
+import json
+import os
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from check_cache import check_model_cache
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Load default config from QA_base.json
+script_dir = os.path.dirname(os.path.abspath(__file__))
+config_path = os.path.join(script_dir, "configs", "QA_base.json")
+with open(config_path, "r") as f:
+    config = json.load(f)
 
 model_name = "meta-llama/Llama-2-7b-hf"
 
@@ -12,13 +20,18 @@ if not check_model_cache(model_name):
     exit(1)
 
 print("\nLoading model from cache...")
+
+# Get torch dtype from config
+torch_dtype_str = config.get("torch_dtype", "float16")
+torch_dtype = getattr(torch, torch_dtype_str) if torch.cuda.is_available() else torch.float32
+
 tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
 
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
-    torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+    torch_dtype=torch_dtype,
     device_map="auto",
     local_files_only=True
 )
@@ -33,9 +46,9 @@ inputs = {k: v.to(device) for k, v in inputs.items()}
 outputs = model.generate(
     **inputs,
     max_new_tokens=100,
-    temperature=0.7,
+    temperature=0.001,
     do_sample=True,
-    pad_token_id=tokenizer.eos_token_id
+    pad_token_id=config.get("eos_token_id", tokenizer.eos_token_id)
 )
 
 generated_tokens = outputs[0][inputs['input_ids'].shape[1]:]

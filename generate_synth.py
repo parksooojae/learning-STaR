@@ -13,7 +13,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from data.data import get_dataset
 
-BATCH_SIZE = 64
+BATCH_SIZE = 128
 
 
 def get_latest_model_folder(repo_id: str = "parksoojae/STaR") -> str:

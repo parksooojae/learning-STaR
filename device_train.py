@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 from huggingface_hub import HfApi, hf_hub_download, list_repo_files, login
 from huggingface_hub.utils import disable_progress_bars as disable_hf_progress
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from trl import SFTTrainer, SFTConfig, DataCollatorForCompletionOnlyLM
+from trl import SFTTrainer, SFTConfig
 
 # Suppress verbose logging
 disable_hf_progress()
@@ -91,21 +91,17 @@ def load_base_model():
 
 def format_example(example):
     """Format single example for training - matches inference prompt format."""
-    return f"""Q: {example["question"]}
+    prompt = f"""Q: {example["question"]}
 Answer Choices:
 {example["answer_choices"]}
-A: {example["rationale"]}"""
+A:"""
+    completion = f""" {example["rationale"]}"""
+    return {"prompt": prompt, "completion": completion}
 
 
 def run_sft(model, tokenizer, dataset, output_dir, iteration):
     """Run SFT training. Requires CUDA GPU with bf16 support."""
-    dataset = dataset.map(lambda x: {"text": format_example(x)}, desc=None)
-    
-    # Mask prompt so model only learns to generate rationale (after "A:")
-    collator = DataCollatorForCompletionOnlyLM(
-        response_template="A:",
-        tokenizer=tokenizer,
-    )
+    dataset = dataset.map(lambda x: format_example(x), desc=None)
     
     config = SFTConfig(
         output_dir=output_dir,
@@ -127,7 +123,7 @@ def run_sft(model, tokenizer, dataset, output_dir, iteration):
         packing=False,                        
         gradient_checkpointing=True,
         report_to="wandb",
-        dataset_text_field="text",
+        completion_only_loss=True,
         disable_tqdm=False,
     )
     
@@ -138,7 +134,6 @@ def run_sft(model, tokenizer, dataset, output_dir, iteration):
         model=model,
         processing_class=tokenizer,
         train_dataset=dataset,
-        data_collator=collator,
         args=config,
     )
     

@@ -1,4 +1,3 @@
-import argparse
 import json
 import os
 import re
@@ -93,8 +92,15 @@ def generate_batch(prompts: List[str], tokenizer, model) -> List[str]:
     return [tokenizer.decode(out[prompt_len:], skip_special_tokens=True) for out in outputs]
 
 
-def main(iteration: int = 0):
+def get_next_iteration(path):
+    return len(open(path).readlines())
+
+
+def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
+    results_path = os.path.join(script_dir, "results.csv")
+    iteration = get_next_iteration(results_path)
+    
     synthetic_path = os.path.join(script_dir, "data", "synthetic.jsonl")
     base_prompt, cond_prompt = load_prompts(script_dir)
     tokenizer, model, config = load_model_and_tokenizer()
@@ -162,7 +168,6 @@ def main(iteration: int = 0):
     print(f"{'='*50}")
     
     # Append results to CSV for easy graphing
-    results_path = os.path.join(script_dir, "results.csv")
     write_header = not os.path.exists(results_path)
     with open(results_path, "a") as f:
         if write_header:
@@ -191,9 +196,5 @@ def main(iteration: int = 0):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Generate synthetic reasoning data")
-    parser.add_argument("--iteration", type=int, default=1, help="Iteration number for tracking (1-indexed)")
-    args = parser.parse_args()
-    
-    main(iteration=args.iteration)
+    main()
 

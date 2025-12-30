@@ -7,3 +7,4 @@ accelerate
 safetensors
 wandb
 python-dotenv
+trl>=0.8.0

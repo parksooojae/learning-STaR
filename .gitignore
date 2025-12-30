@@ -4,5 +4,5 @@ __pycache__/
 *.pyo
 data/synthetic.jsonl
 wandb/
-
 wandb/
+learning-STaR/configs/QA_base.json

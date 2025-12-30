@@ -13,7 +13,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from data.data import get_dataset
 
-BATCH_SIZE = 128
+BATCH_SIZE = 48 
 
 
 def get_latest_model_folder(repo_id: str = "parksoojae/STaR") -> str:
@@ -192,7 +192,7 @@ def main(iteration: int = 0):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate synthetic reasoning data")
-    parser.add_argument("--iteration", type=int, default=0, help="Iteration number for tracking")
+    parser.add_argument("--iteration", type=int, default=1, help="Iteration number for tracking (1-indexed)")
     args = parser.parse_args()
     
     main(iteration=args.iteration)

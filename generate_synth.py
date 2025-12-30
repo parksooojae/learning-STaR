@@ -8,13 +8,32 @@ from typing import Dict, List, Optional
 import torch
 from datasets import Dataset
 from dotenv import load_dotenv
+from huggingface_hub import HfApi
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from check_cache import check_model_cache
 from data.data import get_dataset
 
 BATCH_SIZE = 64
+
+
+def get_latest_model_folder(repo_id: str = "parksoojae/STaR") -> str:
+    """Find the most recent M_* folder in the HuggingFace repo."""
+    api = HfApi()
+    files = api.list_repo_files(repo_id)
+    
+    # Extract unique M_* folder names
+    folders = set()
+    for f in files:
+        if f.startswith("M_") and "/" in f:
+            folder = f.split("/")[0]
+            folders.add(folder)
+    
+    # Sort by number and get the highest
+    sorted_folders = sorted(folders, key=lambda x: int(x.split("_")[1]))
+    latest = sorted_folders[-1]
+    print(f"Using model from: {repo_id}/{latest}")
+    return latest
 
 
 def load_model_and_tokenizer():
@@ -23,16 +42,15 @@ def load_model_and_tokenizer():
     with open(os.path.join(script_dir, "configs", "QA_base.json")) as f:
         config = json.load(f)
 
-    model_name = "meta-llama/Llama-2-7b-hf"
-    if not check_model_cache(model_name):
-        exit(1)
+    repo_id = "parksoojae/STaR"
+    subfolder = get_latest_model_folder(repo_id)
 
     dtype = getattr(torch, config.get("torch_dtype", "float16")) if torch.cuda.is_available() else torch.float32
-    tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
+    tokenizer = AutoTokenizer.from_pretrained(repo_id, subfolder=subfolder)
     tokenizer.pad_token = tokenizer.pad_token or tokenizer.eos_token
     tokenizer.padding_side = "left"
 
-    model = AutoModelForCausalLM.from_pretrained(model_name, dtype=dtype, device_map="auto", local_files_only=True)
+    model = AutoModelForCausalLM.from_pretrained(repo_id, subfolder=subfolder, torch_dtype=dtype, device_map="auto")
     return tokenizer, model, config
 
 

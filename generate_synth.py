@@ -172,18 +172,35 @@ def main(iteration: int = 0):
         f.write("-" * table_width + "\n")
 
     # Push to HuggingFace Hub
+    # Naming scheme:
+    #   - "iteration-{n}" : versioned snapshot (iteration-0, iteration-1, ...)
+    #   - "latest"        : always points to most recent synthetic data
+    # To pull latest: load_dataset("parksoojae/learn-star", "latest")
+    # To pull specific: load_dataset("parksoojae/learn-star", "iteration-2")
     with open(synthetic_path, "r") as f:
         records = [json.loads(line) for line in f]
     
     if records:
         columns = {key: [r[key] for r in records] for key in records[0].keys()}
         dataset = Dataset.from_dict(columns)
+        
+        repo_name = "parksoojae/learn-star"
+        
+        # Push versioned config
         dataset.push_to_hub(
-            "parksoojae/learn-star",
+            repo_name,
             config_name=f"iteration-{iteration}",
             commit_message=f"Add synthetic data from iteration {iteration}"
         )
-        print(f"Successfully pushed iteration-{iteration}")
+        
+        # Push "latest" config (overwrites previous latest)
+        dataset.push_to_hub(
+            repo_name,
+            config_name="latest",
+            commit_message=f"Update latest to iteration {iteration}"
+        )
+        
+        print(f"Successfully pushed iteration-{iteration} and updated 'latest'")
     else:
         print("Push failed: synthetic.jsonl is empty")
 

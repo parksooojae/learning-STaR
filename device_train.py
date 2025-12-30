@@ -117,7 +117,7 @@ def run_sft(model, tokenizer, dataset, output_dir, iteration):
     
     trainer = SFTTrainer(
         model=model,
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
         train_dataset=dataset,
         args=config,
         formatting_func=formatting_func,

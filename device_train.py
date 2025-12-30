@@ -90,13 +90,11 @@ def load_base_model():
 
 
 def format_example(example):
-    """Format single example for training."""
-    return f"""Question: {example["question"]}
-
+    """Format single example for training - matches inference prompt format."""
+    return f"""Q: {example["question"]}
 Answer Choices:
 {example["answer_choices"]}
-
-{example["rationale"]}"""
+A: {example["rationale"]}"""
 
 
 def run_sft(model, tokenizer, dataset, output_dir, iteration):

@@ -74,7 +74,7 @@ $$(x_1^p, r_1^p, y_1^p, \ldots, x_P^p, r_P^p, y_P^p, x_i)$$
 I use wandb for experiment tracking: initializing runs, logging training and validation metrics (losses, performance numbers), logging technical stats (grad-noise, step/tokens/sec, grad norms), and resuming runs during inference/eval.
 
 
-run device_train.py to run SFT against the model.
+
 
 
 

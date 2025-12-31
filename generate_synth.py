@@ -13,7 +13,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from data.data import get_dataset
 
-BATCH_SIZE = 48 
+BATCH_SIZE = 64
 
 
 def get_latest_model_folder(repo_id: str = "parksoojae/STaR") -> str:
@@ -37,6 +37,10 @@ def get_latest_model_folder(repo_id: str = "parksoojae/STaR") -> str:
 
 def load_model_and_tokenizer():
     load_dotenv()
+    
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is not available. This script requires a GPU.")
+    
     script_dir = os.path.dirname(os.path.abspath(__file__))
     with open(os.path.join(script_dir, "configs", "QA_base.json")) as f:
         config = json.load(f)
@@ -44,12 +48,18 @@ def load_model_and_tokenizer():
     repo_id = "parksoojae/STaR"
     subfolder = get_latest_model_folder(repo_id)
 
-    dtype = getattr(torch, config.get("torch_dtype", "float16")) if torch.cuda.is_available() else torch.float32
+    dtype = getattr(torch, config.get("torch_dtype", "float16"))
     tokenizer = AutoTokenizer.from_pretrained(repo_id, subfolder=subfolder)
     tokenizer.pad_token = tokenizer.pad_token or tokenizer.eos_token
     tokenizer.padding_side = "left"
 
-    model = AutoModelForCausalLM.from_pretrained(repo_id, subfolder=subfolder, torch_dtype=dtype, device_map="auto")
+    model = AutoModelForCausalLM.from_pretrained(
+        repo_id,
+        subfolder=subfolder,
+        torch_dtype=dtype,
+        device_map="cuda",
+        attn_implementation="flash_attention_2"
+    )
     return tokenizer, model, config
 
 
@@ -88,7 +98,7 @@ def generate_batch(prompts: List[str], tokenizer, model) -> List[str]:
     prompt_len = inputs["input_ids"].shape[1]
 
     with torch.no_grad():
-        outputs = model.generate(**inputs, max_new_tokens=150, temperature=0.001, do_sample=True, pad_token_id=tokenizer.eos_token_id)
+        outputs = model.generate(**inputs, max_new_tokens=150, temperature=0.5, do_sample=True, pad_token_id=tokenizer.eos_token_id)
 
     return [tokenizer.decode(out[prompt_len:], skip_special_tokens=True) for out in outputs]
 
@@ -154,12 +164,10 @@ def main(iteration: int = 0):
 
     total_correct = first_correct + cond_correct
     
-    # Print to console
-    print(f"\n{'='*50}")
-    print(f"First-attempt correct:    {first_correct:>5} / {total} ({first_correct/total:.2%})")
-    print(f"Rationalized (saved):     {cond_correct:>5} / {total - first_correct} ({cond_correct/(total - first_correct):.2%})" if total > first_correct else "")
-    print(f"Total in synthetic.jsonl: {total_correct:>5} / {total} ({total_correct/total:.2%})")
-    print(f"{'='*50}")
+    # Print summary
+    print(f"\nFirst-attempt: {first_correct}/{total} ({first_correct/total:.1%}) | "
+          f"Rationalized: {cond_correct}/{total - first_correct} | "
+          f"Total: {total_correct}/{total} ({total_correct/total:.1%})")
     
     # Append results to CSV for easy graphing
     results_path = os.path.join(script_dir, "results.csv")

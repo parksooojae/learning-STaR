@@ -8,4 +8,5 @@ safetensors
 wandb
 python-dotenv
 trl>=0.8.0
-flash-attn>=2.5.0  # Requires CUDA; install with: pip install flash-attn --no-build-isolation
+matplotlib
+vllm

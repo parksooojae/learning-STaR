@@ -52,9 +52,9 @@ def start_live_graphs():
 
 
 def run_generate(iteration):
-    """Run generate_synth.py for given iteration."""
+    """Run vllm_synth.py for given iteration."""
     print(f"\n[Iter {iteration}] Generating synthetic data...")
-    subprocess.run([sys.executable, "generate_synth.py", "--iteration", str(iteration)])
+    subprocess.run([sys.executable, "vllm_synth.py"])
 
 
 def run_train():

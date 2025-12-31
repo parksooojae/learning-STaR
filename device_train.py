@@ -161,7 +161,13 @@ def main():
     args = parser.parse_args()
     
     load_dotenv()
-    login()
+    
+    # Check if already logged in, if not then login
+    api = HfApi()
+    try:
+        api.whoami()
+    except Exception:
+        login()
     
     synth_filename, synth_iter = get_latest_synth_file()
     dataset = download_synth_dataset(synth_filename)

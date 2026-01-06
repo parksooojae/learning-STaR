@@ -1,5 +1,7 @@
 # STaR: Self-taught Reasoner
 
+⚠️ repo is lwk under construction rn so it's not really runnable sorry :(
+
 paper replication attempt of "STaR: Bootstrapping Reasoning With Reasoning" (https://arxiv.org/abs/2203.14465). educational purposes only :p 
 
 ## Installation
